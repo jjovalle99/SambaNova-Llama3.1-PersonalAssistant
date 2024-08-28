@@ -19,6 +19,10 @@ ipykernel = "^6.29.5"
 [tool.poetry.group.format.dependencies]
 ruff = "^0.6.2"
 
+
+[tool.poetry.group.logs.dependencies]
+loguru = "^0.7.2"
+
 [tool.ruff]
 line-length = 80
 
