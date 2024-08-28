@@ -2,7 +2,7 @@
 name = "samba-llama3-agent"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Juan Ovalle <jj.ovalle@uniandes.edu.co>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
