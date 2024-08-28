@@ -13,6 +13,13 @@ openai = "^1.42.0"
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
 
+
+[tool.poetry.group.format.dependencies]
+ruff = "^0.6.2"
+
+[tool.ruff]
+line-length=80
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
