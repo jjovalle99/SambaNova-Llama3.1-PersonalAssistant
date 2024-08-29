@@ -87,10 +87,7 @@ async def main():
 
         # Update chat history with final completion
         chat_history["content"].append({"messages": messages.copy(), **metadata.model_dump()})
-        logger.info("Saving chat state...")
-        _now: float = perf_counter()
         save_json_chat_history(conversation_id=conversation_id, chat_history=chat_history)
-        logger.info("Chat state saved in {s:.3f} seconds", s=perf_counter() - _now)
 
 
 if __name__ == "__main__":
