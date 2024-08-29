@@ -22,6 +22,7 @@ ruff = "^0.6.2"
 
 [tool.poetry.group.logs.dependencies]
 loguru = "^0.7.2"
+termcolor = "^2.4.0"
 
 [tool.ruff]
 line-length = 80
