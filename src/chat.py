@@ -1,10 +1,25 @@
+import ast
+from typing import Any
+
 from openai import AsyncStream
 from termcolor import colored
 
 from src.pydantic_classes import Metadata
 
 
-async def ahandle_stream(stream: AsyncStream, verbose: bool = True) -> tuple[str, Metadata]:
+def extract_tool_input_args(s: str) -> dict[str, Any]:
+    """Extracts the tool input arguments from model response.
+
+    Args:
+        s (str): The input string containing the content.
+
+    Returns:
+        dict: tool input arguments.
+    """
+    return ast.literal_eval(s.removeprefix("<tool>").removesuffix("</tool>"))
+
+
+async def ahandle_stream(stream: AsyncStream, verbose: bool = True) -> tuple[str, Metadata, bool]:
     """
     Handles the streaming of the OpenAI asynchronous chat stream. It also supports processing tool calls within the stream.
 
@@ -17,6 +32,7 @@ async def ahandle_stream(stream: AsyncStream, verbose: bool = True) -> tuple[str
     """
 
     response: list[str] = []
+    tool_calls: bool = False
 
     async for chunk in stream:
         if not chunk.choices:
@@ -29,11 +45,16 @@ async def ahandle_stream(stream: AsyncStream, verbose: bool = True) -> tuple[str
         elif token := chunk.choices[0].delta.content:
             # When the delta content has payload. This is when the model dont use a tool.
             response.append(token)
-            if verbose:
-                print(colored(token, "blue"), flush=True, end="")
+
+            if "<tool>" in token:
+                tool_calls = True
+                print(colored("Thinking ...", "yellow"), end="", flush=True)
+
+            elif verbose and not tool_calls:
+                print(colored(token, "blue"), end="", flush=True)
 
         else:
             # When the stream message stops. This is the n-1 chunk.
             finish_reason = chunk.choices[0].finish_reason  # noqa: F841
 
-    return "".join(response), metadata
+    return "".join(response), metadata, tool_calls
