@@ -1,11 +1,9 @@
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
-def save_json_chat_history(
-    conversation_id: str, chat_history: Dict[str, Any], directory: Path = Path("history")
-) -> None:
+def save_json_chat_history(conversation_id: str, chat_history: dict[str, Any], directory: Path = Path("history")) -> None:
     """
     Saves chat history as a JSON file.
 
@@ -27,7 +25,7 @@ def save_json_chat_history(
     directory.mkdir(parents=True, exist_ok=True)
 
     # Make path of JSON file.
-    file_path = directory / f"{conversation_id}.json"
+    file_path: Path = directory / f"{conversation_id}.json"
 
     # Save JSON file.
     with open(file_path, mode="w") as fp:
