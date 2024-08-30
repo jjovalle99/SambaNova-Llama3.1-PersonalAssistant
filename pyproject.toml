@@ -24,6 +24,13 @@ ruff = "^0.6.2"
 loguru = "^0.7.2"
 termcolor = "^2.4.0"
 
+
+[tool.poetry.group.google.dependencies]
+google-auth-oauthlib = "^1.2.1"
+google-auth-httplib2 = "^0.2.0"
+google-api-python-client = "^2.143.0"
+pytz = "^2024.1"
+
 [tool.ruff]
 line-length = 130
 
