@@ -1,3 +1,4 @@
 .env
 history
 __pycache__
+credentials.json
