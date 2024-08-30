@@ -9,8 +9,7 @@ settings: Settings = Settings()
 
 
 class TopHeadlines(BaseModel):
-    """Retrieve the 10 most recent headlines from Colombia. It can be used to quickly access current
-    news information without requiring any input parameters."""
+    """Retrieve the 10 most recent headlines from Colombia. It can be used to quickly access current news information without requiring any input parameters."""
 
     model_config = ConfigDict(json_schema_extra={"name": "get_top_headlines", "required": []})
 
