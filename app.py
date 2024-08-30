@@ -1,4 +1,4 @@
-import json
+import os
 from datetime import datetime
 from time import perf_counter
 from typing import Any
@@ -9,29 +9,29 @@ from termcolor import colored
 
 from src.chat import ahandle_stream, extract_tool_input_args
 from src.client import SambaAsync
+from src.google_tools import CalendarAppointments, GmailEmails, get_calendar_appointments, get_gmail_emails
 from src.persistence import save_json_chat_history
 from src.settings import Settings
 from src.tools import TopHeadlines, get_top_headlines
+from src.utils import prepare_schemas
 
 settings: Settings = Settings()
 client: SambaAsync = SambaAsync(base_url=settings.samba_url, api_key=settings.samba_api_key)
-tool_belt: dict[str, Any] = {"get_top_headlines": get_top_headlines}
+schemas: str = prepare_schemas(models=[TopHeadlines, GmailEmails, CalendarAppointments])
+tool_belt: dict[str, Any] = {
+    "get_top_headlines": get_top_headlines,
+    "get_gmail_emails": get_gmail_emails,
+    "get_calendar_appointments": get_calendar_appointments,
+}
 
-# TODO: organize schemas
-func1_schema: dict = TopHeadlines().model_json_schema()
-del func1_schema["title"]
 
 system_prompt: str = f"""Cutting Knowledge Date: December 2023
 Today Date: {datetime.now().strftime('%Y-%m-%d')}
 
-You are Jarvis, a helpful assistant working for Juan Ovalle (he prefers JJ). You will be always talking with him. You have tool calling capabilities. You have access to the following tools:
+You are Jarvis, a personal assistant working for Juan Ovalle (he prefers JJ). His life depends on you. You will be always talking with him. You have tool calling capabilities. You have access to the following tools:
 
 <tools>
-<get_top_headlines>
-```json
-{json.dumps(func1_schema, indent=4)}
-```
-<get_top_headlines/>
+{schemas}
 </tools>
 
 If a tool is needed to best answer the user prompt, please respond ONLY with a JSON for a function call with its
@@ -57,6 +57,7 @@ async def main():
         },
     ]
 
+    os.system("clear")
     while True:
         prompt = input("You > ")
         if prompt in ("exit"):
@@ -105,6 +106,7 @@ async def main():
             save_json_chat_history(conversation_id=conversation_id, chat_history=chat_history)
 
             # Final completion with tool responses
+            logger.info("Generating response...")
             _now: float = perf_counter()
             stream = await client.chat.completions.create(
                 messages=messages,
