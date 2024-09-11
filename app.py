@@ -5,10 +5,10 @@ from typing import Any
 from uuid import uuid4
 
 from loguru import logger
+from openai import AsyncOpenAI
 from termcolor import colored
 
 from src.chat import ahandle_stream, extract_tool_input_args
-from src.client import SambaAsync
 from src.google_tools import CalendarAppointments, GmailEmails, get_calendar_appointments, get_gmail_emails
 from src.persistence import save_json_chat_history
 from src.settings import Settings
@@ -16,7 +16,7 @@ from src.tools import TopHeadlines, get_top_headlines
 from src.utils import prepare_schemas
 
 settings: Settings = Settings()
-client: SambaAsync = SambaAsync(base_url=settings.samba_url, api_key=settings.samba_api_key)
+client = AsyncOpenAI(api_key=settings.samba_api_key, base_url=settings.samba_url)
 schemas: str = prepare_schemas(models=[TopHeadlines, GmailEmails, CalendarAppointments])
 tool_belt: dict[str, Any] = {
     "get_top_headlines": get_top_headlines,
