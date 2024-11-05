@@ -9,17 +9,16 @@ from openai import AsyncOpenAI
 from termcolor import colored
 
 from src.chat import ahandle_stream, extract_tool_input_args
-from src.google_tools import CalendarAppointments, GmailEmails, get_calendar_appointments, get_gmail_emails
 from src.persistence import save_json_chat_history
 from src.settings import Settings
-from src.tools import TopHeadlines, get_top_headlines
+from src.tools.gmail import GmailEmails, get_gmail_emails
+from src.tools.google_calendar import CalendarAppointments, get_calendar_appointments
 from src.utils import prepare_schemas
 
 settings: Settings = Settings()
 client = AsyncOpenAI(api_key=settings.samba_api_key, base_url=settings.samba_url)
-schemas: str = prepare_schemas(models=[TopHeadlines, GmailEmails, CalendarAppointments])
+schemas: str = prepare_schemas(models=[GmailEmails, CalendarAppointments])
 tool_belt: dict[str, Any] = {
-    "get_top_headlines": get_top_headlines,
     "get_gmail_emails": get_gmail_emails,
     "get_calendar_appointments": get_calendar_appointments,
 }
