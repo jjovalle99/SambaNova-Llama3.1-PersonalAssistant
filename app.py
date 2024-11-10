@@ -11,32 +11,43 @@ from termcolor import colored
 from src.chat import ahandle_stream, extract_tool_input_args
 from src.persistence import save_json_chat_history
 from src.settings import Settings
-from src.tools.gmail import GmailEmails, get_gmail_emails
-from src.tools.google_calendar import CalendarAppointments, get_calendar_appointments
-from src.utils import prepare_schemas
+from src.tools.google_tools.base import GoogleTool
+from src.tools.google_tools.credentials import GoogleCredsConfig, GoogleCredsManager
+from src.tools.google_tools.executors import CalendarInsertExecutor, CalendarReadExecutor, GmailReadExecutor, GmailWriteExecutor
+from src.tools.utils import prepare_schemas
 
 settings: Settings = Settings()
 client = AsyncOpenAI(api_key=settings.samba_api_key, base_url=settings.samba_url)
-schemas: str = prepare_schemas(models=[GmailEmails, CalendarAppointments])
-tool_belt: dict[str, Any] = {
-    "get_gmail_emails": get_gmail_emails,
-    "get_calendar_appointments": get_calendar_appointments,
+creds_manager = GoogleCredsManager(creds_config=GoogleCredsConfig(client_secrets_path=settings.credentials_path))
+schemas: str = prepare_schemas(models=[GmailReadExecutor, GmailWriteExecutor, CalendarInsertExecutor, CalendarReadExecutor])
+google_tools: dict[str, Any] = {
+    "read_gmail_emails": GmailReadExecutor,
+    "send_gmail_email": GmailWriteExecutor,
+    "insert_calendar_appointment": CalendarInsertExecutor,
+    "get_calendar_appointments": CalendarReadExecutor,
 }
-
+tool_belt = {}
 
 system_prompt: str = f"""Cutting Knowledge Date: December 2023
 Today Date: {datetime.now().strftime('%Y-%m-%d')}
 
-You are Jarvis, a personal assistant working for Juan Ovalle (he prefers JJ). His life depends on you. You will be always talking with him. You have tool calling capabilities. You have access to the following tools:
+You are Jarvis, a personal assistant working for Juan Ovalle. His life depends on you. You will be always talking with him. You have tool calling capabilities.
+You have access to the following tools:
 
-<tools>
 {schemas}
-</tools>
 
-If a tool is needed to best answer the user prompt, please respond ONLY with a JSON for a function call with its
-proper arguments like {{"name": function name, "parameters": dictionary of argument name and its value}}. This means that the response must contain exclusively the dictionary and nothing else. Finally, the JSON must be surounded by <tool>. 
+If you choose to call a function ONLY reply in the following format with no prefix or suffix:
+<tool>{{"name": function name, "parameters": dictionary of argument name and its value}}</tool>
+
+Reminder:
+- Function calls MUST follow the specified format, start with <tool> and end with </tool>
+- Required parameters MUST be specified
+- Only call one function at a time
+- Put the entire function call reply on one line
+- If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls
 
 Always think of your response step by step."""
+print(system_prompt)
 
 
 async def main():
@@ -95,10 +106,16 @@ async def main():
             tool_input: dict[str, Any] = tool_args.get("parameters")
 
             # Invoke the tool
-            tool_output: Any = await tool_belt.get(tool_name)(**tool_input)
+            if tool_name in google_tools:
+                tool_output: Any = await GoogleTool(
+                    creds_manager=creds_manager, executor=google_tools.get(tool_name)(**tool_input)
+                ).run()
+            else:
+                tool_output: Any = await tool_belt.get(tool_name)(**tool_input).run()
+            logger.info("Tool output: {o}", o=tool_output)
 
             # Handles all the messages that need to be added to proper tool calling
-            messages.append({"role": "tool", "content": str(tool_output)})
+            messages.append({"role": "ipython", "content": str(tool_output)})
 
             # Update chat history with tool information
             chat_history["content"].append({"messages": messages.copy(), **metadata.model_dump()})
