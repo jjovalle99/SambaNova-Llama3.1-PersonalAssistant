@@ -12,6 +12,7 @@ from termcolor import colored
 from src.chat import ahandle_stream, extract_tool_input_args
 from src.persistence import save_json_chat_history
 from src.settings import Settings
+from src.stt import capture_voice_input
 from src.tools.google_tools.base import GoogleTool
 from src.tools.google_tools.credentials import GoogleCredsConfig, GoogleCredsManager
 from src.tools.google_tools.executors import CalendarInsertExecutor, CalendarReadExecutor, GmailReadExecutor, GmailWriteExecutor
@@ -77,8 +78,13 @@ async def main():
 
     os.system("clear")
     while True:
-        prompt = input("You > ")
-        if prompt in ("exit"):
+        prompt = await capture_voice_input(client=openai_client, p=p)
+
+        if not prompt:
+            continue
+        print(f"You > {prompt}", end="", flush=True)
+
+        if prompt.lower().strip() in ("exit"):
             break
 
         # Add user input to messages
