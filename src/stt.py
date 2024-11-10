@@ -4,8 +4,9 @@ import wave
 from typing import List, Optional
 
 import pyaudio
-from openai import AsyncOpenAI
 from loguru import logger
+from openai import AsyncOpenAI
+
 
 async def capture_voice_input(
     client: AsyncOpenAI,
@@ -68,12 +69,8 @@ async def capture_voice_input(
         return transcription
 
     except Exception as e:
-        print(f"Error capturing voice: {e}")
+        logger.error("Error capturing voice: {e}", e=e)
         return None
 
     finally:
-        # Cleanup
-        try:
-            os.unlink(temp_filename)
-        except:
-            pass
+        os.unlink(temp_filename)
