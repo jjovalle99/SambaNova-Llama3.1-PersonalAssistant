@@ -68,7 +68,7 @@ class GmailWriteExecutor(GoogleServiceExecutor):
     model_config = ConfigDict(json_schema_extra={"name": "send_gmail_email"})
     to: str = Field(description="Recipient email address")
     subject: str = Field(description="Email subject")
-    body: str = Field(description="Email body")
+    body: str = Field(description="Complete content of the email. Expected to be long text.")
 
     async def execute(self, creds) -> str:
         """Send an email using the Gmail API.
@@ -139,7 +139,7 @@ class CalendarInsertExecutor(GoogleServiceExecutor):
     description: str = Field(description="Appointment description")
     start_time: str = Field(description="Start time in RFC3339 format", examples=["2024-11-10T20:00:00"])
     end_time: str = Field(description="End time in RFC3339 format", examples=["2024-11-10T20:30:00"])
-    attendees: list[str] = Field(description="List of attendee email addresses")
+    attendees: list[str] | None = Field(description="List of attendee email addresses")
 
     async def execute(self, creds) -> str:
         service = build(serviceName="calendar", version="v3", credentials=creds)

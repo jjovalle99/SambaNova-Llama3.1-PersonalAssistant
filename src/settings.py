@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    openai_api_key: str
     samba_api_key: str
     samba_url: str
     credentials_path: Path = "credentials.json"

@@ -4,6 +4,7 @@ from time import perf_counter
 from typing import Any
 from uuid import uuid4
 
+import pyaudio
 from loguru import logger
 from openai import AsyncOpenAI
 from termcolor import colored
@@ -15,9 +16,12 @@ from src.tools.google_tools.base import GoogleTool
 from src.tools.google_tools.credentials import GoogleCredsConfig, GoogleCredsManager
 from src.tools.google_tools.executors import CalendarInsertExecutor, CalendarReadExecutor, GmailReadExecutor, GmailWriteExecutor
 from src.tools.utils import prepare_schemas
+from src.tts import play_audio
 
 settings: Settings = Settings()
-client = AsyncOpenAI(api_key=settings.samba_api_key, base_url=settings.samba_url)
+p = pyaudio.PyAudio()
+openai_client = AsyncOpenAI(api_key=settings.openai_api_key)
+samba_client = AsyncOpenAI(api_key=settings.samba_api_key, base_url=settings.samba_url)
 creds_manager = GoogleCredsManager(creds_config=GoogleCredsConfig(client_secrets_path=settings.credentials_path))
 schemas: str = prepare_schemas(models=[GmailReadExecutor, GmailWriteExecutor, CalendarInsertExecutor, CalendarReadExecutor])
 google_tools: dict[str, Any] = {
@@ -31,15 +35,20 @@ tool_belt = {}
 system_prompt: str = f"""Cutting Knowledge Date: December 2023
 Today Date: {datetime.now().strftime('%Y-%m-%d')}
 
-You are Jarvis, a personal assistant working for Juan Ovalle. His life depends on you. You will be always talking with him. You have tool calling capabilities.
-You have access to the following tools:
+You are Jarvis, a personal assistant working for Juan Ovalle. His life depends on you. You will be always talking with him. You have function calling capabilities.
+You have access to the following functions:
 
 {schemas}
 
-If you choose to call a function ONLY reply in the following format with no prefix or suffix:
+You MUST respond in ONE of these two formats:
+
+1. If you need to call a function, respond ONLY with:
 <tool>{{"name": function name, "parameters": dictionary of argument name and its value}}</tool>
 
-Reminder:
+2. If no function call is needed, respond with a normal conversational message.
+
+Important Rules:
+- Choose only ONE response format - either a function call OR a text message
 - Function calls MUST follow the specified format, start with <tool> and end with </tool>
 - Required parameters MUST be specified
 - Only call one function at a time
@@ -47,7 +56,6 @@ Reminder:
 - If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls
 
 Always think of your response step by step."""
-print(system_prompt)
 
 
 async def main():
@@ -79,7 +87,7 @@ async def main():
         # Generate stream
         logger.info("Generating response...")
         _now: float = perf_counter()
-        stream = await client.chat.completions.create(
+        stream = await samba_client.chat.completions.create(
             messages=messages,
             model="llama3-405b",
             temperature=0.0,
@@ -94,6 +102,10 @@ async def main():
         response, metadata, tool_calls = await ahandle_stream(stream=stream)
         if tool_calls:
             logger.info("tool call: {r}", r=response.removeprefix("<tool>").removesuffix("</tool>"))
+
+        # TTS (1)
+        if not tool_calls:
+            await play_audio(p=p, openai_client=openai_client, response=response)
 
         # Add model response to messages
         messages.append({"role": "assistant", "content": response})
@@ -124,7 +136,7 @@ async def main():
             # Final completion with tool responses
             logger.info("Generating response...")
             _now: float = perf_counter()
-            stream = await client.chat.completions.create(
+            stream = await samba_client.chat.completions.create(
                 messages=messages,
                 model="llama3-405b",
                 temperature=0.0,
@@ -136,6 +148,9 @@ async def main():
 
             print(colored("Assistant > ", "blue"), end="", flush=True)
             response, metadata, _ = await ahandle_stream(stream=stream)
+
+            # Audio (2)
+            await play_audio(p=p, openai_client=openai_client, response=response)
 
         print()
 
