@@ -15,7 +15,7 @@ from openai import AsyncOpenAI
 async def capture_voice_input(
     client: AsyncOpenAI,
     p: pyaudio.PyAudio,
-    timeout: int = 5,
+    timeout: int = 20,
 ) -> Optional[str]:
     """
     Capture voice input from microphone and transcribe it using OpenAI's Whisper model.
