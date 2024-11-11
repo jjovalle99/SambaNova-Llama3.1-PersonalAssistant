@@ -19,7 +19,22 @@ def extract_tool_input_args(s: str) -> dict[str, Any]:
     Returns:
         dict: tool input arguments.
     """
-    return json.loads(s.removeprefix("<tool>").removesuffix("</tool>"))
+    data = json.loads(s.removeprefix("<tool>").removesuffix("</tool>"))
+
+    def parse_possible_json_strings(obj):
+        if isinstance(obj, dict):
+            return {k: parse_possible_json_strings(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [parse_possible_json_strings(v) for v in obj]
+        elif isinstance(obj, str):
+            try:
+                return json.loads(obj)
+            except json.JSONDecodeError:
+                return obj
+        else:
+            return obj
+
+    return parse_possible_json_strings(data)
 
 
 def play_mp3_loop(file_path: str, stop_event: Event) -> None:
