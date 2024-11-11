@@ -1,5 +1,9 @@
 import os
+import select
+import sys
 import tempfile
+import termios
+import tty
 import wave
 from typing import List, Optional
 
@@ -37,17 +41,34 @@ async def capture_voice_input(
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio:
         temp_filename: str = temp_audio.name
 
+    # Save the terminal settings
+    old_settings = termios.tcgetattr(sys.stdin)
     try:
-        # Open stream
-        stream: pyaudio.Stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
+        # Set terminal to cbreak mode
+        tty.setcbreak(sys.stdin.fileno())
 
-        logger.info("Listening... (speaking for 5 seconds)")
+        # Open stream
+        stream: pyaudio.Stream = p.open(
+            format=FORMAT,
+            channels=CHANNELS,
+            rate=RATE,
+            input=True,
+            frames_per_buffer=CHUNK,
+        )
+
+        logger.info("Listening... (Press Enter to stop)")
 
         # Record audio
         frames: List[bytes] = []
         for _ in range(0, int(RATE / CHUNK * timeout)):
             data: bytes = stream.read(CHUNK)
             frames.append(data)
+
+            # Check if Enter key is pressed
+            if select.select([sys.stdin], [], [], 0)[0]:
+                c = sys.stdin.read(1)
+                if c == "\n":
+                    break  # Exit the loop if Enter is pressed
 
         # Stop recording
         stream.stop_stream()
@@ -63,7 +84,7 @@ async def capture_voice_input(
         # Transcribe
         with open(temp_filename, "rb") as audio_file:
             transcription: str = await client.audio.transcriptions.create(
-                model="whisper-1", file=audio_file, response_format="text"
+                model="whisper-1", file=audio_file, response_format="text", temperature=0.0
             )
 
         return transcription
@@ -73,4 +94,6 @@ async def capture_voice_input(
         return None
 
     finally:
+        # Restore the terminal settings
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
         os.unlink(temp_filename)

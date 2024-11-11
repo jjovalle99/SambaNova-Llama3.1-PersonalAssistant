@@ -10,5 +10,7 @@ class Settings(BaseSettings):
     credentials_path: Path = "credentials.json"
     gmail_host_user: str
     timezone: str = "Europe/London"
+    weatherstack_api_key: str
+    worlds_news_api_key: str
 
     model_config = SettingsConfigDict(env_file=".env")

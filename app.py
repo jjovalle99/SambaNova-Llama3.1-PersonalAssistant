@@ -16,7 +16,9 @@ from src.stt import capture_voice_input
 from src.tools.google_tools.base import GoogleTool
 from src.tools.google_tools.credentials import GoogleCredsConfig, GoogleCredsManager
 from src.tools.google_tools.executors import CalendarInsertExecutor, CalendarReadExecutor, GmailReadExecutor, GmailWriteExecutor
+from src.tools.news import NewspaperFrontTool
 from src.tools.utils import prepare_schemas
+from src.tools.weather import WeatherTool
 from src.tts import play_audio
 
 settings: Settings = Settings()
@@ -24,14 +26,18 @@ p = pyaudio.PyAudio()
 openai_client = AsyncOpenAI(api_key=settings.openai_api_key)
 samba_client = AsyncOpenAI(api_key=settings.samba_api_key, base_url=settings.samba_url)
 creds_manager = GoogleCredsManager(creds_config=GoogleCredsConfig(client_secrets_path=settings.credentials_path))
-schemas: str = prepare_schemas(models=[GmailReadExecutor, GmailWriteExecutor, CalendarInsertExecutor, CalendarReadExecutor])
 google_tools: dict[str, Any] = {
     "read_gmail_emails": GmailReadExecutor,
     "send_gmail_email": GmailWriteExecutor,
     "insert_calendar_appointment": CalendarInsertExecutor,
     "get_calendar_appointments": CalendarReadExecutor,
 }
-tool_belt = {}
+other_tools: dict[str, Any] = {
+    "get_weather_data": WeatherTool,
+    "get_news_data": NewspaperFrontTool,
+}
+
+schemas: str = prepare_schemas(models=[*google_tools.values(), *other_tools.values()])
 
 system_prompt: str = f"""Cutting Knowledge Date: December 2023
 Today Date: {datetime.now().strftime('%Y-%m-%d')}
@@ -55,6 +61,7 @@ Important Rules:
 - Only call one function at a time
 - Put the entire function call reply on one line
 - If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls
+- Only respond with a function call if you have all the required information to call the function, follow up questions must not be accompanied by a function call
 """
 
 
@@ -128,7 +135,7 @@ async def main():
                     creds_manager=creds_manager, executor=google_tools.get(tool_name)(**tool_input)
                 ).run()
             else:
-                tool_output: Any = await tool_belt.get(tool_name)(**tool_input).run()
+                tool_output: Any = await other_tools.get(tool_name)(**tool_input).run()
             logger.info("Tool output: {o}", o=tool_output)
 
             # Handles all the messages that need to be added to proper tool calling
