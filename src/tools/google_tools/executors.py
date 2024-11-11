@@ -143,6 +143,7 @@ class CalendarInsertExecutor(GoogleServiceExecutor):
 
     async def execute(self, creds) -> str:
         service = build(serviceName="calendar", version="v3", credentials=creds)
+        attendees = self.attendees if self.attendees else []
         event = {
             "summary": self.summary,
             "location": self.location,
@@ -155,7 +156,7 @@ class CalendarInsertExecutor(GoogleServiceExecutor):
                 "dateTime": self.end_time,
                 "timeZone": settings.timezone,
             },
-            "attendees": [{"email": settings.gmail_host_user}].extend([{"email": attendee} for attendee in self.attendees]),
+            "attendees": [{"email": settings.gmail_host_user}].extend([{"email": attendee} for attendee in attendees]),
         }
 
         event = service.events().insert(calendarId="primary", body=event).execute()
