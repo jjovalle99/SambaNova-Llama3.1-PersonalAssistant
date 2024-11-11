@@ -84,12 +84,10 @@ async def main():
 
     os.system("clear")
     while True:
-        prompt = await capture_voice_input(client=openai_client, p=p)
-
-        if not prompt:
+        if not (prompt := await capture_voice_input(client=openai_client, p=p)):
             continue
-        print(f"You > {prompt}", end="", flush=True)
 
+        print(f"You > {prompt}", end="", flush=True)
         if prompt.lower().strip() in ("exit"):
             break
 
