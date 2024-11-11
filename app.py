@@ -55,8 +55,7 @@ Important Rules:
 - Only call one function at a time
 - Put the entire function call reply on one line
 - If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls
-
-Always think of your response step by step."""
+"""
 
 
 async def main():
