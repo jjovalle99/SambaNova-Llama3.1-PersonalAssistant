@@ -1,11 +1,13 @@
 import base64
 from datetime import datetime
+from io import BytesIO
 from time import perf_counter
 from typing import Literal
 
 import httpx
 from loguru import logger
 from openai import AsyncOpenAI
+from PIL import Image
 from pydantic import ConfigDict, Field
 
 from src.settings import Settings
@@ -62,10 +64,12 @@ class NewspaperFrontTool(AsyncTool):
             response = await client.get(url, params=params)
             response.raise_for_status()
             data = response.json()
+            front_page_image_url = data.get("front_page", {}).get("image")
+            image = await client.get(front_page_image_url)
+            with Image.open(BytesIO(image.content)) as img:
+                img.show()
 
-        front_page_image_url = data.get("front_page", {}).get("image")
         samba_client = AsyncOpenAI(api_key=settings.samba_api_key, base_url=settings.samba_url)
-
         messages = [
             {
                 "role": "user",
