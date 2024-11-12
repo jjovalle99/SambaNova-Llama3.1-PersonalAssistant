@@ -102,7 +102,7 @@ async def main():
         messages.append({"role": "user", "content": prompt})
 
         # Generate stream
-        logger.info("Generating response...")
+        logger.info("SambaNova Llama3.1-405B generating response...")
         _now: float = perf_counter()
         stream = await samba_client.chat.completions.create(
             messages=messages,
@@ -112,7 +112,7 @@ async def main():
             stream=True,
             stream_options={"include_usage": True},
         )
-        logger.info("Generation time: {s:.3f} seconds", s=perf_counter() - _now)
+        logger.info("SambaNova Llama3.1-405B generation time: {s:.3f} seconds", s=perf_counter() - _now)
 
         # Handle stream (1)
         print(colored("Assistant > ", "blue"), end="", flush=True)
@@ -151,7 +151,7 @@ async def main():
             save_json_chat_history(conversation_id=conversation_id, chat_history=chat_history)
 
             # Final completion with tool responses
-            logger.info("Generating response...")
+            logger.info("SambaNova Llama3.1-405B generating response...")
             _now: float = perf_counter()
             stream = await samba_client.chat.completions.create(
                 messages=messages,
@@ -161,7 +161,7 @@ async def main():
                 stream=True,
                 stream_options={"include_usage": True},
             )
-            logger.info("Generation time: {s:.3f} seconds", s=perf_counter() - _now)
+            logger.info("SambaNova Llama3.1-405B generation time: {s:.3f} seconds", s=perf_counter() - _now)
 
             print(colored("Assistant > ", "blue"), end="", flush=True)
             response, metadata, _ = await ahandle_stream(stream=stream)

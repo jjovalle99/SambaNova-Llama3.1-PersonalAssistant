@@ -1,6 +1,6 @@
 import base64
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.message import EmailMessage
 from typing import Any
 
@@ -117,9 +117,21 @@ class CalendarReadExecutor(GoogleServiceExecutor):
         service = build(serviceName="calendar", version="v3", credentials=creds)
 
         utc_now = datetime.now(pytz.utc)
-        rfc3339_time = utc_now.isoformat()
+        time_min = (utc_now - timedelta(days=1)).isoformat()
+        time_max = (utc_now + timedelta(days=365)).isoformat()
 
-        events = service.events().list(calendarId="primary", timeMin=rfc3339_time, maxResults=self.n, singleEvents=True).execute()
+        events = (
+            service.events()
+            .list(
+                calendarId="primary",
+                timeMin=time_min,
+                timeMax=time_max,
+                maxResults=self.n,
+                singleEvents=True,
+                orderBy="startTime",
+            )
+            .execute()
+        )
 
         formatted_appointments: list[str] | None = []
         for i, event in enumerate(events.get("items", [])):
