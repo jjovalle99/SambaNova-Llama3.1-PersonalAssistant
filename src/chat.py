@@ -47,7 +47,7 @@ def play_mp3_loop(file_path: str, stop_event: Event) -> None:
     """
     pygame.mixer.init()
     pygame.mixer.music.load(file_path)
-    pygame.mixer.music.set_volume(0.09)
+    pygame.mixer.music.set_volume(0.05)
 
     while not stop_event.is_set():
         pygame.mixer.music.play()
