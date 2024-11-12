@@ -1,5 +1,4 @@
 import base64
-from datetime import datetime
 from io import BytesIO
 from time import perf_counter
 from typing import Literal
@@ -53,12 +52,7 @@ class NewspaperFrontTool(AsyncTool):
         """
 
         url = "https://api.worldnewsapi.com/retrieve-front-page"
-        params = {
-            "api-key": settings.worlds_news_api_key,
-            "source-country": self.city,
-            "source-name": self.source,
-            "date": datetime.now().strftime("%Y-%m-%d"),
-        }
+        params = {"api-key": settings.worlds_news_api_key, "source-country": self.city, "source-name": self.source}
 
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params=params)

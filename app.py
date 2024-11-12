@@ -10,6 +10,7 @@ from openai import AsyncOpenAI
 from termcolor import colored
 
 from src.chat import ahandle_stream, extract_tool_input_args
+from src.gui import WaveformVisualizer
 from src.persistence import save_json_chat_history
 from src.settings import Settings
 from src.stt import capture_voice_input
@@ -66,6 +67,10 @@ Important Rules:
 
 
 async def main():
+    # Initialize visualizer
+    visualizer = WaveformVisualizer(x=0, y=0)
+    visualizer.show()
+
     # Initialize Conversation ID and Chat History
     conversation_id: str = str(uuid4())
     logger.info("Starting conversation with ID: {id}", id=conversation_id)
@@ -84,6 +89,8 @@ async def main():
 
     os.system("clear")
     while True:
+        visualizer.app.processEvents()
+
         if not (prompt := await capture_voice_input(client=openai_client, p=p)):
             continue
 
@@ -115,7 +122,7 @@ async def main():
 
         # TTS (1)
         if not tool_calls:
-            await play_audio(p=p, openai_client=openai_client, response=response)
+            await play_audio(p=p, openai_client=openai_client, response=response, visualizer=visualizer)
 
         # Add model response to messages
         messages.append({"role": "assistant", "content": response})
@@ -160,8 +167,7 @@ async def main():
             response, metadata, _ = await ahandle_stream(stream=stream)
 
             # Audio (2)
-            await play_audio(p=p, openai_client=openai_client, response=response)
-
+            await play_audio(p=p, openai_client=openai_client, response=response, visualizer=visualizer)
         print()
 
         # Update chat history with final completion
