@@ -2,3 +2,5 @@
 history
 __pycache__
 credentials.json
+token.json
+draft.py

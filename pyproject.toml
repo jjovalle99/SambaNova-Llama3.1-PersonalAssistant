@@ -4,12 +4,14 @@ version = "0.1.0"
 description = ""
 authors = ["Juan Ovalle <jj.ovalle@uniandes.edu.co>"]
 readme = "README.md"
+packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
 openai = "^1.42.0"
 pydantic = "^2.8.2"
 pydantic-settings = "^2.4.0"
+pillow = "^11.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -24,6 +26,9 @@ ruff = "^0.6.2"
 loguru = "^0.7.2"
 termcolor = "^2.4.0"
 
+[tool.poetry.group.tts_stt.dependencies]
+pyaudio = "^0.2.14"
+pygame = "^2.6.1"
 
 [tool.poetry.group.google.dependencies]
 google-auth-oauthlib = "^1.2.1"
