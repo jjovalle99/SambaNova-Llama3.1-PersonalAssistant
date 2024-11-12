@@ -7,14 +7,25 @@ from PyQt5 import QtCore, QtWidgets
 
 
 class WaveformVisualizer:
-    def __init__(self):
+    def __init__(self, x=None, y=None):
         self.app = QtWidgets.QApplication.instance()
         if not self.app:
             self.app = QtWidgets.QApplication(sys.argv)
 
         self.window = QtWidgets.QMainWindow()
         self.window.setWindowTitle("Agent powered by SambaNova")
-        self.window.resize(600, 400)
+        self.window.resize(800, 400)
+
+        # Set window position if specified
+        if x is not None and y is not None:
+            self.window.move(x, y)
+        else:
+            # Center the window on the screen by default
+            screen = QtWidgets.QApplication.primaryScreen().geometry()
+            window_geometry = self.window.geometry()
+            x = (screen.width() - window_geometry.width()) // 2
+            y = (screen.height() - window_geometry.height()) // 2
+            self.window.move(x, y)
 
         self.canvas = WaveformCanvas()
         self.window.setCentralWidget(self.canvas)
@@ -30,6 +41,11 @@ class WaveformVisualizer:
     def update_waveform(self, audio_chunk: np.ndarray):
         self.canvas.update_with_data(audio_chunk)
         # Process events to ensure UI updates
+        self.app.processEvents()
+
+    def move_window(self, x: int, y: int):
+        """Move the window to a specific position on the screen."""
+        self.window.move(x, y)
         self.app.processEvents()
 
 

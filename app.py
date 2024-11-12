@@ -68,7 +68,7 @@ Important Rules:
 
 async def main():
     # Initialize visualizer
-    visualizer = WaveformVisualizer()
+    visualizer = WaveformVisualizer(x=0, y=0)
     visualizer.show()
 
     # Initialize Conversation ID and Chat History
