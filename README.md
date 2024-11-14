@@ -1,12 +1,7 @@
 # Your own J.A.R.V.I.S (powered by SambaNova & OpenAI)
 
-<table>
-  <tr>
-    <td valign="middle"><img src="assets/arq.png" width="400"></td>
-    </td>
-  </tr>
-</table>
-
+https://github.com/user-attachments/assets/9973ea38-7ccc-4577-b483-a4c4b6ab87c1
+![img](assets/arq.png)
 
 ## Description
 Ever dreamed of having your own J.A.R.V.I.S, like Tony Stark in Iron Man? Well, dream no more – it's here! This project brings the futuristic AI assistant experience to life, giving you genuine superpowers for your daily tasks. Imagine having a personal assistant who can manage your emails, track your upcoming events, schedule meetings, check local weather, and even curate and read your daily news – all through natural voice interaction, just like J.A.R.V.I.S. The best part? You don't need to type a single word; everything works seamlessly through voice commands and responses.
