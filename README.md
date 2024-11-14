@@ -1,6 +1,7 @@
 # Your own J.A.R.V.I.S (powered by SambaNova & OpenAI)
 
 https://github.com/user-attachments/assets/9973ea38-7ccc-4577-b483-a4c4b6ab87c1
+
 ![img](assets/arq.png)
 
 ## Description
